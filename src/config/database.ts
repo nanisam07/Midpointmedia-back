@@ -3,33 +3,35 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const DATABASE_URL = process.env.DATABASE_URL;
+
+if (!DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is not configured');
+}
+
 const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT) || 5432,
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME || 'midpoint_media',
+  connectionString: DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 pool.on('connect', () => {
-  console.log('✅ PostgreSQL connected');
+  console.log('✅ Neon PostgreSQL connected');
 });
 
-pool.on('error', (error: any) => {
+pool.on('error', (error) => {
   console.error('❌ PostgreSQL pool error:', error);
 });
 
-export const testDatabaseConnection = async () => {
+export async function testDatabaseConnection() {
   try {
-    const result = await pool.query('SELECT NOW()');
-
-    console.log(
-      `✅ Database connected at ${result.rows[0].now}`
-    );
+    await pool.query('SELECT NOW()');
+    console.log('✅ Database connection successful');
   } catch (error) {
     console.error('❌ Database connection failed:', error);
-    process.exit(1);
+    throw error;
   }
-};
+}
 
 export default pool;

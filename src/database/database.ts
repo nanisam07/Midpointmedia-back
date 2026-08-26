@@ -6,8 +6,7 @@ dotenv.config();
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
-  console.error('❌ DATABASE_URL is not configured');
-  process.exit(1);
+  throw new Error('DATABASE_URL is not configured');
 }
 
 const pool = new Pool({
@@ -15,30 +14,23 @@ const pool = new Pool({
   ssl: {
     rejectUnauthorized: false,
   },
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
 });
 
 pool.on('connect', () => {
-  console.log('✅ PostgreSQL connected');
+  console.log('✅ Neon PostgreSQL connected');
 });
 
 pool.on('error', (error) => {
-  console.error('❌ Unexpected PostgreSQL pool error:', error);
+  console.error('❌ PostgreSQL pool error:', error);
 });
 
 export async function testDatabaseConnection() {
   try {
     const result = await pool.query('SELECT NOW()');
-
-    console.log('✅ Database connection successful');
-    console.log('🕐 Database time:', result.rows[0].now);
-
-    return true;
+    console.log('✅ Database connection successful:', result.rows[0]);
   } catch (error) {
     console.error('❌ Database connection failed:', error);
-    return false;
+    throw error;
   }
 }
 
