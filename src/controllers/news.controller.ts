@@ -245,9 +245,14 @@ export const addView = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Invalid news ID' });
     }
 
-    const userId    = getUserId(req);
-    const ipAddress = (req.headers['x-forwarded-for'] as string) ||
-                      req.socket.remoteAddress;
+    const userId = getUserId(req);
+
+const forwardedFor = req.headers['x-forwarded-for'];
+
+const ipAddress =
+  typeof forwardedFor === 'string'
+    ? forwardedFor.split(',')[0].trim()
+    : req.socket.remoteAddress || undefined;
 
     const result = await incrementReadCount(id, userId, ipAddress);
     if (!result) {
