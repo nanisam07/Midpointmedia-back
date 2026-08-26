@@ -4,15 +4,18 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT) || 5432,
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME || 'midpoint_media',
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 pool.on('connect', () => {
   console.log('✅ PostgreSQL connected');
+});
+
+pool.on('error', (error) => {
+  console.error('❌ PostgreSQL pool error:', error);
 });
 
 export default pool;
